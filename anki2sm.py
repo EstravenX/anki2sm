@@ -34,7 +34,7 @@ def hello(file, v):
 
   doc = unpack_db(p)
 
-  with open("{}/out.xml".format(TMP), "w") as f:
+  with open("{}/out.xml".format(out.as_posix()), "w") as f:
     f.write(doc.getvalue())
   return 0
 
