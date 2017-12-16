@@ -95,8 +95,8 @@ def unpack_db(path: Path):
         #mpg mpeg mov mp4 mkv ogx ogv oga flv swf flac
         #sm17 supports (known)
         #jpg png gif bmp jpeg mp3 avi mp4
-        content_sound = ()
-        content_video = ()
+        Content_Sound = ()
+        Content_Video = ()
         if "[sound:" in e: #@Todo: what happens if [ or ] is in the name?
           g = re.search("\[sound\:([^\]]+)", e)
           for p in g.groups():
@@ -104,33 +104,35 @@ def unpack_db(path: Path):
             if m.exists():
               if any([ext in m.suffix for ext in ["mp3", "ogg", "wav"]]) \
                   or "audio" in magic.from_file(m.as_posix(), mime=True):
-                content_sound = content_sound + (p,)
+                Content_Sound = Content_Sound + (p,)
               if any([ext in m.suffix for ext in ["mp4", "wmv", "mkv"]]) \
                   or "video" in magic.from_file(m.as_posix(), mime=True):
-                content_video = content_video + (p,)
+                Content_Video = Content_Video + (p,)
         with tag('SuperMemoElement'):
           with tag('ID'):
             text(get_id())
           with tag('Type'):
             text('Item')
           with tag('Content'): #zero or more of Question Answer Sound Video Image Binary
-            with tag('Question'):
-              text(strip_control_characters(qs[0]))
-            with tag('Answer'):
-              text(strip_control_characters(qs[1]))
+            for s in qs[:-1]:
+              with tag('Question'):
+                text(strip_control_characters(s))
+            for s in qs[-1]:
+              with tag('Answer'):
+                text(strip_control_characters(s))
             if img:
               with tag('Image'):
                 with tag('URL'):
                   text(img_path)
                 with tag('Name'):
                   text(img)
-            for s in content_video:
+            for s in Content_Video:
               with tag('Video'):
                 with tag('URL'):
                   text("[SecondaryStorage]\\{}".format(s))
                 with tag('Name'):
                   text(s)
-            for s in content_sound:
+            for s in Content_Sound:
               with tag('Sound'):
                 with tag('URL'):
                   text("[SecondaryStorage]\\{}".format(s))
