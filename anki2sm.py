@@ -3,6 +3,7 @@ import click
 import magic
 import json
 import sqlite3
+from pyquery import PyQuery as pq
 import itertools
 
 from zipfile import ZipFile
@@ -71,7 +72,11 @@ def unpack_db(path: Path):
       for row in cursor.fetchall():
         id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data = row
         qs = flds.split(sep)
-        print (row)
+        d = pq(flds+sfld)
+        img = d("img").attr("src")
+        img_path = ""
+        if img:
+          img_path = "[SecondaryStorage]\\{}".format(img)
         with tag('SuperMemoElement'):
           with tag('ID'):
             text(get_id())
@@ -84,9 +89,9 @@ def unpack_db(path: Path):
               text(strip_control_characters(qs[1]))
             with tag('Image'):
               with tag('URL'):
-                text("")
+                text(img_path)
               with tag('Name'):
-                text("")
+                text(img)
           with tag("LearningData"): #@Todo, convert anki learning data to sm
             with tag("Interval"):
               text("1")
