@@ -31,7 +31,9 @@ def hello(file, v):
 
 
 def unzip_file(zipfile_path: Path) -> Path:
-  assert "zip" in magic.from_file(zipfile_path.as_posix(), mime=True)
+  if "zip" not in magic.from_file(zipfile_path.as_posix(), mime=True):
+    print("apkg does not appear to be a ZIP file...")
+    exit(1)
   with ZipFile(zipfile_path.as_posix(), 'r') as apkg:
     apkg.extractall(zipfile_path.stem)
   return Path(zipfile_path.stem)
@@ -51,8 +53,10 @@ def unpack_db(path: Path):
   doc, tag, text = Doc().tagtext()
 
   cursor.execute("SELECT * FROM notes")
-  sep = "\x1f"
+  sep = "\x1f" #some kind of control code that is not valid XML
   get_id = get_id_func()
+
+  # @Todo, each collection should have its own concept
 
   with tag('SuperMemoCollection'):
     with tag('Count'):
@@ -60,18 +64,17 @@ def unpack_db(path: Path):
     with tag("SuperMemoElement"):
       with tag('ID'):
         text(get_id())
-      with tag('Title'):
+      with tag('Title'): #Items don't have titles
         text('Test')
-      with tag('Type'):
+      with tag('Type'): #Concept, Topic or Item
         text('Topic')
       for row in cursor.fetchall():
         id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data = row
         qs = flds.split(sep)
+        print (row)
         with tag('SuperMemoElement'):
           with tag('ID'):
             text(get_id())
-          with tag('Title'):
-            text(strip_control_characters(qs[0]))
           with tag('Type'):
             text('Item')
           with tag('Content'):
@@ -80,11 +83,11 @@ def unpack_db(path: Path):
             with tag('Answer'):
               text(strip_control_characters(qs[1]))
             with tag('Image'):
-              with tag('Url'):
+              with tag('URL'):
                 text("")
               with tag('Name'):
                 text("")
-          with tag("LearningData"):
+          with tag("LearningData"): #@Todo, convert anki learning data to sm
             with tag("Interval"):
               text("1")
             with tag("Repetitions"):
