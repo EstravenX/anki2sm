@@ -65,8 +65,6 @@ def unpack_db(path: Path):
   sep = "\x1f" #some kind of control code that is not valid XML
   get_id = get_id_func()
 
-
-
   with tag('SuperMemoCollection'):
     with tag('Count'):
       text('3')
@@ -114,12 +112,14 @@ def unpack_db(path: Path):
           with tag('Type'):
             text('Item')
           with tag('Content'): #zero or more of Question Answer Sound Video Image Binary
-            for s in qs[:-1]:
-              with tag('Question'):
-                text(strip_control_characters(s))
-            for s in qs[-1]:
-              with tag('Answer'):
-                text(strip_control_characters(s))
+            with tag('Question'):
+              a = strip_control_characters(qs[0])
+              a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
+              text(a)
+            with tag('Answer'):
+              a = strip_control_characters(" ".join(qs[1:]))
+              a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
+              text(a)
             if img:
               with tag('Image'):
                 with tag('URL'):
