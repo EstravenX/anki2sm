@@ -19,22 +19,20 @@ TMP = "out/out_files/elements"
 @click.option('--file', help='Filename.')
 @click.option('--v', default=True, help='Filename.')
 def hello(file, v):
-  """Simple program that greets NAME for a total of COUNT times."""
-  #for x in range(count):
-  #  click.echo(click.style('Hello {}!'.format(name), fg='green'))
+  """Insert helptext here."""
 
   p = unzip_file(Path(file))
   media = unpack_media(p)
   out = Path("out")
   out.mkdir(parents=True, exist_ok=True)
-  elements = Path("{}/out_files/elements".format(out.as_posix()))
+  elements = Path(f"{out.as_posix()}/out_files/elements")
   elements.mkdir(parents=True, exist_ok=True)
   for k in media:
     shutil.move(p.joinpath(k).as_posix(), elements.joinpath(media[k]).as_posix())
 
   doc = unpack_db(p)
 
-  with open("{}/out.xml".format(out.as_posix()), "w") as f:
+  with open(f"{out.as_posix()}/out.xml", "w") as f:
     f.write(doc.getvalue())
   return 0
 
@@ -187,7 +185,7 @@ def strip_control_characters(input):
     input = re.sub(r"[\x01-\x1F\x7F]", "", input)
 
   return input
-  
+
 def pp(p):
   click.secho(">> ", fg="green", nl=False)
   click.echo(p)
