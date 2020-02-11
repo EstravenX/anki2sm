@@ -144,21 +144,21 @@ def unpack_db(path: Path):
             for img in Content_Images:
               with tag('Image'):
                 with tag('URL'):
-                  text("C:\\ProgramData\\smmedia\\{}".format(img))
+                  text(os.path.expandvars(r'%LocalAppData%')+"\\temp\\smmedia\\{}".format(img))
                 with tag('Name'):
                   text(img)
 
             for s in Content_Video:
               with tag('Video'):
                 with tag('URL'):
-                  text("C:\\ProgramData\\smmedia\\{}".format(s))
+                  text(os.path.expandvars(r'%LocalAppData%')+"\\temp\\smmedia\\{}".format(s))
                 with tag('Name'):
                   text(s)
 
             for s in Content_Sound:
               with tag('Sound'):
                 with tag('URL'):
-                  text("C:\\ProgramData\\smmedia\\{}".format(s))
+                  text(os.path.expandvars(r'%LocalAppData%')+"\\temp\\smmedia\\{}".format(s))
                 with tag('Name'):
                   text(s)
                 with tag('Text'):
@@ -236,17 +236,17 @@ if __name__ == '__main__':
         print ("Error: %s - %s." % (e.filename, e.strerror))
 
     #creating smmedia if it doesnot exist
-    if not os.path.exists('C:\\ProgramData\\smmedia'):
+    if not os.path.exists(str(os.path.expandvars(r'%LocalAppData%')+"\\temp\\smmedia\\")):
       try:
-        os.makedirs('C:\\ProgramData\\smmedia')
+        os.makedirs(str(os.path.expandvars(r'%LocalAppData%')+"\\temp\\smmedia\\"))
       except OSError as e:
         if e.errno != errno.EEXIST:
           raise
     #moving media files to smmedia
     files = os.listdir(os.getcwd()+"\\out\\out_files\\elements")
     for f in files:
-      if f not in os.listdir('C:\\ProgramData\\smmedia'):
-        shutil.move(os.getcwd()+"\\out\\out_files\\elements\\"+f, 'C:\\ProgramData\\smmedia')
+      if f not in os.listdir(str(os.path.expandvars(r'%LocalAppData%')+"\\temp\\smmedia\\")):
+        shutil.move(os.getcwd()+"\\out\\out_files\\elements\\"+f, str(os.path.expandvars(r'%LocalAppData%')+"\\temp\\smmedia\\"))
     #deleting temp media files
     try:
       shutil.rmtree(os.getcwd()+"\\out\\out_files\\elements")
