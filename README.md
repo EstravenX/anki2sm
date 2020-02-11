@@ -11,10 +11,11 @@
   Media from anki is stored into ```C:\ProgramData\smmedia```. You donot need to create the directory the script creates it. Tested with images and audio. Some cool stuff could be added, check code if you are willing to work on them.
 
 # TODO:
-  1) [ ] Bug test it.
-  2) [ ] Anki progress import.
-  3) [ ] Each collection should have its own concept or topic.
-  4) [ ] if ```or``` is in a media's filename
+  1) [ ] Handle File exception on already existing files. 
+  2) [ ] Bug test it.
+  3) [ ] Anki progress import.
+  4) [ ] Each collection should have its own concept or topic.
+  5) [ ] if ```or``` is in a media's filename
 
 # Special Thanks to:
 -https://github.com/KeepOnSurviving
