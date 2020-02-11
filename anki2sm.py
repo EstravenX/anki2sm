@@ -245,6 +245,7 @@ if __name__ == '__main__':
     #moving media files to smmedia
     files = os.listdir(os.getcwd()+"\\out\\out_files\\elements")
     for f in files:
+      if f not in os.listdir('C:\\ProgramData\\smmedia'):
         shutil.move(os.getcwd()+"\\out\\out_files\\elements\\"+f, 'C:\\ProgramData\\smmedia')
     #deleting temp media files
     try:
