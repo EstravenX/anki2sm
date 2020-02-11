@@ -151,7 +151,7 @@ def unpack_db(path: Path):
             for s in Content_Video:
               with tag('Video'):
                 with tag('URL'):
-                  text("C:\\Users\\polit\\AppData\\Roaming\\smmedia\\{}".format(s))
+                  text("C:\\ProgramData\\smmedia\\{}".format(s))
                 with tag('Name'):
                   text(s)
 
