@@ -1,4 +1,5 @@
-click
-python-magic
-yattag
-pyquery
+pyquery==1.4.1
+Click==7.0
+yattag==1.13.2
+beautifulsoup4==4.8.2
+python_magic==0.4.15
