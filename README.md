@@ -1,7 +1,7 @@
 # An Anki to SuperMemo 17 converter
-  anki2smn is a python script that is meant to batch convert anki decks into supermemo decks, including audios, images and videos. The scripts comes on with an additional feature of extracting annotated links, for incremental reading. It creates a bat file that when run opens exploerer with multiple tabs. You can open supermemo to import the webpages.This script is ment to run on Windows.  
+  anki2sm is a python script that is meant to batch convert anki decks into supermemo decks, including audios, images and videos. The scripts comes on with an additional feature of extracting annotated links, for incremental reading. It creates a bat file that when run opens exploerer with multiple tabs. You can open supermemo to import the webpages.This script is ment to run on Windows.  
 
-###### Steps for usage:
+### Steps for usage:
 - clone this repo
 - delete sample apkg in apkgs folder and paste your own
 - run script and profit!
