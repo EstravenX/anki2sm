@@ -17,5 +17,5 @@
   4) [ ] if ```or``` is in a media's filename
 
 # Special Thanks to:
-  https://github.com/KeepOnSurviving
-  https://github.com/cutie
+  -https://github.com/KeepOnSurviving
+  -https://github.com/cutie
