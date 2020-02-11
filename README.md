@@ -8,10 +8,14 @@
 - run script and profit! (python anki2sm.py )
 
 ##### Some Notes:
-  Media from anki is stored into ```C:\ProgramData\smmedia```. You donot need to create the directory script creates it. tested with images and audio. Some cool stuff could be added check code if you are willing to work on them.
+  Media from anki is stored into ```C:\ProgramData\smmedia```. You donot need to create the directory the script creates it. Tested with images and audio. Some cool stuff could be added, check code if you are willing to work on them.
 
 # TODO:
   1) [ ] Bug test it.
   2) [ ] Anki progress import.
   3) [ ] Each collection should have its own concept or topic.
   4) [ ] if ```or``` is in the filename
+
+# Special Thanks to:
+  https://github.com/KeepOnSurviving
+  https://github.com/cutie
