@@ -144,7 +144,7 @@ def unpack_db(path: Path):
             for img in Content_Images:
               with tag('Image'):
                 with tag('URL'):
-                  text("C:\\ProgramData\\smmedia{}".format(img))
+                  text("C:\\ProgramData\\smmedia\\{}".format(img))
                 with tag('Name'):
                   text(img)
 
@@ -158,7 +158,7 @@ def unpack_db(path: Path):
             for s in Content_Sound:
               with tag('Sound'):
                 with tag('URL'):
-                  text("C:\\ProgramData\\smmedia{}".format(s))
+                  text("C:\\ProgramData\\smmedia\\{}".format(s))
                 with tag('Name'):
                   text(s)
                 with tag('Text'):
