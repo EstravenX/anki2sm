@@ -14,7 +14,7 @@
   1) [ ] Bug test it.
   2) [ ] Anki progress import.
   3) [ ] Each collection should have its own concept or topic.
-  4) [ ] if ```or``` is in the filename
+  4) [ ] if ```or``` is in a media's filename
 
 # Special Thanks to:
   https://github.com/KeepOnSurviving
