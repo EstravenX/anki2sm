@@ -1,3 +1,4 @@
+import errno
 import re
 import shutil
 import click
@@ -16,12 +17,55 @@ from pathlib import Path
 import datetime
 from yattag import Doc
 import fnmatch
+from xml.sax.saxutils import unescape
+from html.entities import name2codepoint
+
 
 TMP = "out/out_files/elements"
 urls = []
 #@click.command()
 #@click.option('--file', help='Filename.')
 #@click.option('--v', default=True, help='Filename.')
+
+reComment = re.compile("(?s)<!--.*?-->")
+reStyle = re.compile("(?si)<style.*?>.*?</style>")
+reScript = re.compile("(?si)<script.*?>.*?</script>")
+reTag = re.compile("(?s)<.*?>")
+reEnts = re.compile(r"&#?\w+;")
+
+
+def stripHTML(s: str) -> str:
+    s = reComment.sub("", s)
+    s = reStyle.sub("", s)
+    s = reScript.sub("", s)
+    s = reTag.sub("", s)
+    s = entsToTxt(s)
+    return s
+
+def entsToTxt(html: str) -> str:
+    # entitydefs defines nbsp as \xa0 instead of a standard space, so we
+    # replace it first
+    html = html.replace("&nbsp;", " ")
+
+    def fixup(m):
+        text = m.group(0)
+        if text[:2] == "&#":
+            # character reference
+            try:
+                if text[:3] == "&#x":
+                    return chr(int(text[3:-1], 16))
+                else:
+                    return chr(int(text[2:-1]))
+            except ValueError:
+                pass
+        else:
+            # named entity
+            try:
+                text = chr(name2codepoint[text[1:-1]])
+            except KeyError:
+                pass
+        return text  # leave as is
+    return reEnts.sub(fixup, html)
 
 def hello(file, v):
   """Insert helptext here."""
@@ -44,7 +88,7 @@ def hello(file, v):
       f.write(doc.getvalue())
     return 0
   else:
-    er("Cannot convert ",os.path.basename(file) )
+    ep("Cannot convert ",os.path.basename(file) )
     return -1
 
 def unzip_file(zipfile_path: Path) -> Path:
@@ -131,7 +175,7 @@ def unpack_db(path: Path):
             with tag('Question'):
               a = strip_control_characters(qs[0])
               a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
-              text(a)
+              text(stripHTML(a))
               html = Soup(a,'html.parser')
               m=[p['href'] for p in html.find_all('a') ]
               urls.append(m[0]) if len(m) else ""
@@ -139,7 +183,7 @@ def unpack_db(path: Path):
             with tag('Answer'):
               a = strip_control_characters(" ".join(qs[1:]))
               a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
-              text(a)
+              text(stripHTML(a))
 
             for img in Content_Images:
               with tag('Image'):
