@@ -13,8 +13,7 @@
 # TODO: 
   1) [ ] Bug test it.
   2) [ ] Anki progress import.
-  3) [ ] Each collection should have its own concept or topic.
-  4) [ ] if ```or``` is in a media's filename
+  3) [x] Each collection should have its own concept or topic.
 
 # Special Thanks to:
 -https://github.com/KeepOnSurviving  << --- original creator --- >>
