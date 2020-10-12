@@ -48,7 +48,7 @@ coverage.xml
 
 # Translations
 *.mo
-*.pot
+Ü*.pot
 
 # Django stuff:
 *.log
@@ -102,4 +102,10 @@ ENV/
 
 .idea/
 in/
-out/
+ignore/
+*.apkg
+*.xml
+*.zip
+*anki2
+random/
+random/*

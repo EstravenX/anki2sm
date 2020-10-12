@@ -2,4 +2,9 @@ pyquery==1.4.1
 Click==7.0
 yattag==1.13.2
 beautifulsoup4==4.8.2
-python_magic==0.4.15
+pathlib~=1.0.1
+premailer~=3.7.0
+cssutils~=1.0.2
+Pillow~=7.0.0
+svglib~=1.0.1
+reportlab~=3.5.34
