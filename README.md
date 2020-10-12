@@ -20,3 +20,5 @@
 -https://github.com/KeepOnSurviving  << --- original creator --- >>
 
 -https://github.com/cutie
+"# anki2smV2" 
+"# anki2smV2" 
