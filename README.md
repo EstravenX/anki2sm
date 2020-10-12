@@ -15,9 +15,6 @@
   2) [ ] Anki progress import.
   3) [x] Each collection should have its own concept or topic.
 
-# Special Thanks to:
--https://github.com/KeepOnSurviving  << --- original creator --- >>
-
--https://github.com/cutie
-"# anki2smV2" 
-"# anki2smV2" 
+# Contributers:
+-https://github.com/KeepOnSurviving  ``original creator```
+-https://github.com/cutie 
