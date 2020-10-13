@@ -16,6 +16,7 @@
   3) [x] Each collection should have its own concept or topic.
   4) [ ] Support Latex.
   5) [ ] Suport image occlusion. 
+  6) [ ] Item names to reflect the content.
 
 
 # Contributers:
