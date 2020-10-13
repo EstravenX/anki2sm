@@ -27,8 +27,8 @@
 
  ## Original Contributers 
 
--[KeepOnSurviving](https://github.com/KeepOnSurviving)
+- [KeepOnSurviving](https://github.com/KeepOnSurviving)
 
--[cutie](https://github.com/cutie)
+- [cutie](https://github.com/cutie)
 
 
