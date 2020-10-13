@@ -24,7 +24,7 @@
  
  - Leo
 
-- [lotabout](https://github.com/lotabout/)[Modified pymustache Library](https://github.com/lotabout/pymustache/blob/master/pymustache/mustache.py)
+- [lotabout](https://github.com/lotabout/) ([Modified pymustache Library](https://github.com/lotabout/pymustache/blob/master/pymustache/mustache.py))
 
  ## Original Contributers 
 
