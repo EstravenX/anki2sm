@@ -1,11 +1,11 @@
 # Anki to SuperMemo 17 converter
-  anki2sm is a python script that is meant to batch convert anki decks into supermemo decks, including audios, images and videos. The scripts comes with an additional feature of extracting annotated links, for incremental reading. It creates a bat file that when run opens exploerer with multiple tabs. You can open supermemo to import these webpages.This script is meant to run on Windows.  
-
+  anki2sm is a python script that is meant to batch convert anki decks into supermemo decks, including audios, images and videos. The scripts comes with an additional feature of extracting annotated links, for incremental reading. It creates a bat file that when run opens exploerer with multiple tabs. You can open supermemo to import these webpages.This script is meant to run on Windows. Feel free to schedule call [here]( https://calendly.com/test0009/raj) with Raj to guide you through Supermemo.
 ### Steps for usage:
 - clone this repo
-- make sure requirements.txt is met 
-- delete sample apkg in apkgs folder and paste your own in there
-- run script and profit! (python anki2sm.py )
+- make sure requirements.txt is met or run the ```init.bat``` to install the dependancies
+- create an ```apkgs``` folder and ```out``` folder within the root directory of the cloned repo
+- paste your apkgs into the ```apkgs```
+- run ```run.bat``` which should run the anki2smV2
 
 ##### Some Notes:
   Media from anki is stored into ```C:\Users\<your-username>\AppData\Local\Temp\smmedia```. You donot need to create the directory the script creates it. Tested with images and audio. 
@@ -14,8 +14,21 @@
   1) [ ] Bug test it.
   2) [ ] Anki progress import.
   3) [x] Each collection should have its own concept or topic.
+  4) [ ] Support Latex.
+  5) [ ] Suport image occlusion. 
+
 
 # Contributers:
--https://github.com/KeepOnSurviving  ```original creator```
+ - [Raj](https://github.com/rajlego)
+ 
+ - Leo
 
--https://github.com/cutie 
+- [lotabout](https://github.com/lotabout/)[Modified pymustache Library](https://github.com/lotabout/pymustache/blob/master/pymustache/mustache.py)
+
+ ## Original Contributers 
+
+-[KeepOnSurviving](https://github.com/KeepOnSurviving)
+
+-[cutie](https://github.com/cutie)
+
+
