@@ -10,7 +10,7 @@ from pathlib import Path
 import json
 from collections import defaultdict
 from zipfile import ZipFile
-
+from progress.bar import IncrementalBar
 from magic import magic
 import Formatters
 import mustache
@@ -20,6 +20,7 @@ import premailer
 import cssutils
 import logging
 import click
+from config import Config
 from Utils.HtmlUtils import \
 	(
 	wrapHtmlIn,
@@ -51,6 +52,11 @@ doc, tag, text = Doc().tagtext()
 
 IMPORT_LEARNING_DATA = False
 IMAGES_AS_COMPONENT = False
+
+SIDES = ("q", "a", "anki")
+
+DEFAULT_SIDE = SIDES[2]
+
 IMAGES_TEMP = ()
 FAILED_DECKS = []
 
@@ -155,15 +161,10 @@ def unpack_db(path: Path) -> None:
 	for row in cursor.fetchall():
 		did, crt, mod, scm, ver, dty, usn, ls, conf, models, decks, dconf, tags = row
 		buildColTree(decks)
-		print("Building Collection Tree Completed..")
 		buildModels(models)
-		print("Building Models Completed...")
-		print(getDeckFromID(Anki_Collections,"1600222419614"))
 		buildNotes(path)
-		print("Building Cards Completed...")
 		buildCardsAndDeck(path)
-		print("Card and Deck Completed...")
-	# prettyDeckTree(Anki_Collections)
+	print("\tExporting into xml...\n\n")
 	export(path)
 
 
@@ -173,7 +174,7 @@ def unpack_media(media_dir: Path):
 	
 	with open(media_dir.joinpath("media").as_posix(), "r") as f:
 		m = json.loads(f.read())
-		pp("Amount of media files: {}".format(len(m)))
+		print(f'\tAmount of media files: {len(m)}\n')
 	return m
 
 
@@ -235,17 +236,20 @@ def getSubDeck(d: dict, name: str) -> Collection:
 						res = col
 		else:
 			if isinstance(value, dict):
-				if res is None :
+				if res is None:
 					res = getSubDeck(value, name)
-	print(res)
 	return res
+
 
 def buildColTree(m: str):
 	global Anki_Collections
 	y = json.loads(m)
 	decks = []
-	for k in y.keys():
-		attach(k, y[k]["name"], Anki_Collections)
+	with IncrementalBar("\tBuilding Collection Tree", max=len(y.keys())) as bar:
+		for k in y.keys():
+			attach(k, y[k]["name"], Anki_Collections)
+			bar.next()
+		bar.finish()
 
 
 def buildModels(t: str):
@@ -253,22 +257,25 @@ def buildModels(t: str):
 	y = json.loads(t)
 	templates = []
 	flds = []
-	for k in y.keys():
-		AnkiModels[str(y[k]["id"])] = Model(str(y[k]["id"]), y[k]["type"], y[k]["css"])
-		
-		for fld in y[k]["flds"]:
-			flds.append((fld["name"], fld["ord"]))
-		flds.sort(key=lambda x: int(x[1]))
-		
-		AnkiModels[str(y[k]["id"])].flds = tuple([f[0] for f in flds])
-		
-		for tmpl in y[k]["tmpls"]:
-			templates.append(Template(tmpl["name"], tmpl["qfmt"], tmpl["did"], tmpl["bafmt"], tmpl["afmt"], tmpl["ord"],
-			                          tmpl["bqfmt"]))
-		
-		AnkiModels[str(y[k]["id"])].tmpls = tuple(templates)
-		templates = []
-		flds = []
+	with IncrementalBar("\tBuilding Models", max=len(y.keys())) as bar:
+		for k in y.keys():
+			AnkiModels[str(y[k]["id"])] = Model(str(y[k]["id"]), y[k]["type"], y[k]["css"])
+			
+			for fld in y[k]["flds"]:
+				flds.append((fld["name"], fld["ord"]))
+			flds.sort(key=lambda x: int(x[1]))
+			
+			AnkiModels[str(y[k]["id"])].flds = tuple([f[0] for f in flds])
+			
+			for tmpl in y[k]["tmpls"]:
+				templates.append(Template(tmpl["name"], tmpl["qfmt"], tmpl["did"], tmpl["bafmt"], tmpl["afmt"], tmpl["ord"],
+				                          tmpl["bqfmt"]))
+			
+			AnkiModels[str(y[k]["id"])].tmpls = tuple(templates)
+			templates = []
+			flds = []
+			bar.next()
+		bar.finish()
 
 
 def buildStubbleDict(note: Note):
@@ -285,12 +292,15 @@ def buildNotes(path: Path):
 	conn = sqlite3.connect(path.joinpath("collection.anki2").as_posix())
 	cursor = conn.cursor()
 	cursor.execute("SELECT * FROM notes")
-	for row in cursor.fetchall():
-		nid, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data = row
-		reqModel = AnkiModels[str(mid)]
-		AnkiNotes[str(nid)] = Note(reqModel, flds)
-		AnkiNotes[str(nid)].tags = EmptyString(tags).split(" ")
-
+	rows = cursor.fetchall()
+	with IncrementalBar('\tBuilding Notes', max=len(rows)) as bar:
+		for row in rows:
+			nid, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data = row
+			reqModel = AnkiModels[str(mid)]
+			AnkiNotes[str(nid)] = Note(reqModel, flds)
+			AnkiNotes[str(nid)].tags = EmptyString(tags).split(" ")
+			bar.next()
+		bar.finish()
 
 #   Commented until a better understanding of anki is reached
 #   	Source: https://groups.google.com/d/msg/supermemo_users/dTzhEog6zPk/8wqBk4qcCgAJ
@@ -321,58 +331,59 @@ def buildCardsAndDeck(path: Path):
 	cursor.execute(
 		"SELECT * FROM cards ORDER BY factor ASC")  # min ease would at rows[0] and max index would be at rows[-1]
 	rows = cursor.fetchall()
-	
-	for row in rows:
-		cid, nid, did, ordi, mod, usn, crtype, queue, due, ivl, factor, reps, lapses, left, odue, odid, flags, data = row
-		reqNote = AnkiNotes[str(nid)]
-		genCard = None
-		
-		if reqNote.model.type == 0:
-			reqTemplate = getTemplateofOrd(reqNote.model.tmpls, int(ordi))
+	with IncrementalBar("\tBuilding Cards and deck", max=len(rows)) as bar:
+		for row in rows:
+			cid, nid, did, ordi, mod, usn, crtype, queue, due, ivl, factor, reps, lapses, left, odue, odid, flags, data = row
+			reqNote = AnkiNotes[str(nid)]
+			genCard = None
 			
-			questionTg = "<style> " + buildCssForOrd(reqNote.model.css, ordi) \
-			             + "</style><section class='card' style=\" height:100%; width:100%; margin:0; \">" \
-			             + mustache.render(reqTemplate.qfmt, buildStubbleDict(reqNote)) + "</section>"
-			answerTag = "<style> " + buildCssForOrd(reqNote.model.css, ordi) \
-			            + "</style><section class='card' style=\" height:100%; width:100%; margin:0; \">" \
-			            + mustache.render(reqTemplate.afmt, buildStubbleDict(reqNote)) + "</section>"
-			questionTg = premailer.transform(questionTg)
-			answerTag = premailer.transform(answerTag)
-			genCard = Card(cid, questionTg, answerTag)
+			if reqNote.model.type == 0:
+				reqTemplate = getTemplateofOrd(reqNote.model.tmpls, int(ordi))
+				
+				questionTg = "<style> " + buildCssForOrd(reqNote.model.css, ordi) \
+				             + "</style><section class='card' style=\" height:100%; width:100%; margin:0; \">" \
+				             + mustache.render(reqTemplate.qfmt, buildStubbleDict(reqNote)) + "</section>"
+				answerTag = "<style> " + buildCssForOrd(reqNote.model.css, ordi) \
+				            + "</style><section class='card' style=\" height:100%; width:100%; margin:0; \">" \
+				            + mustache.render(reqTemplate.afmt, buildStubbleDict(reqNote)) + "</section>"
+				questionTg = premailer.transform(questionTg)
+				answerTag = premailer.transform(answerTag)
+				genCard = Card(cid, questionTg, answerTag)
 			
-		elif reqNote.model.type == 1:
-			reqTemplate = getTemplateofOrd(reqNote.model.tmpls, 0)
+			elif reqNote.model.type == 1:
+				reqTemplate = getTemplateofOrd(reqNote.model.tmpls, 0)
+				
+				mustache.filters["cloze"] = lambda txt: Formatters.cloze_q_filter(txt, str(int(ordi) + 1))
+				
+				css = reqNote.model.css
+				css = buildCssForOrd(css, ordi) if css else ""
+				
+				questionTg = "<style> " + css + " </style><section class='card' style=\" height:100%; width:100%; margin:0; \">" \
+				             + mustache.render(reqTemplate.qfmt, buildStubbleDict(reqNote)) + "</section>"
+				
+				mustache.filters["cloze"] = lambda txt: Formatters.cloze_a_filter(txt, str(int(ordi) + 1))
+				
+				answerTag = "<section class='card' style=\" height:100%; width:100%; margin:0; \">" \
+				            + mustache.render(reqTemplate.afmt, buildStubbleDict(reqNote)) + "</section>"
+				
+				questionTg = premailer.transform(questionTg)
+				answerTag = premailer.transform(answerTag)
+				genCard = Card(cid, questionTg, answerTag)
 			
-			mustache.filters["cloze"] = lambda txt: Formatters.cloze_q_filter(txt, str(int(ordi) + 1))
-			
-			css = reqNote.model.css
-			css = buildCssForOrd(css, ordi) if css else ""
-			
-			questionTg = "<style> " + css + " </style><section class='card' style=\" height:100%; width:100%; margin:0; \">" \
-			             + mustache.render(reqTemplate.qfmt, buildStubbleDict(reqNote)) + "</section>"
-			
-			mustache.filters["cloze"] = lambda txt: Formatters.cloze_a_filter(txt, str(int(ordi) + 1))
-			
-			answerTag = "<section class='card' style=\" height:100%; width:100%; margin:0; \">" \
-			            + mustache.render(reqTemplate.afmt, buildStubbleDict(reqNote)) + "</section>"
-			
-			questionTg = premailer.transform(questionTg)
-			answerTag = premailer.transform(answerTag)
-			genCard = Card(cid, questionTg, answerTag)
-			
-		if genCard is not None:
-			reqDeck = getDeckFromID(Anki_Collections, str(did))
-			if reqDeck is not None:
-				reqDeck.cards.append(genCard)
+			if genCard is not None:
+				reqDeck = getDeckFromID(Anki_Collections, str(did))
+				if reqDeck is not None:
+					reqDeck.cards.append(genCard)
+				else:
+					if did not in FAILED_DECKS:
+						FAILED_DECKS.append(did)
 			else:
 				if did not in FAILED_DECKS:
 					FAILED_DECKS.append(did)
-		else:
-			if did not in FAILED_DECKS:
-				FAILED_DECKS.append(did)
-		totalCardCount += 1
-
-
+			totalCardCount += 1
+			bar.next()
+		bar.finish()
+		
 def buildCssForOrd(css, ordi):
 	pagecss = cssutils.parseString(css)
 	defaultCardCss = get_rule_for_selector(pagecss, ".card")
@@ -463,7 +474,7 @@ def cardHasData(card: Card) -> bool:
 
 
 def SuperMemoElement(card: Card) -> None:
-	global doc, tag, text, get_id, IMAGES_TEMP
+	global doc, tag, text, get_id, IMAGES_TEMP,DEFAULT_SIDE,SIDES
 	IMAGES_TEMP = ()
 	
 	QContent_Sounds = ()
@@ -497,7 +508,7 @@ def SuperMemoElement(card: Card) -> None:
 					if any([ext in m.suffix for ext in ["mp4", "wmv", "mkv"]]) \
 							or "video" in magic.from_file(m.as_posix(), mime=True):
 						AContent_Videos = AContent_Videos + (p,)
-		
+	
 	card.q = Formatters.reSound.sub("", card.q)
 	card.a = Formatters.reSound.sub("", card.a)
 	
@@ -517,7 +528,7 @@ def SuperMemoElement(card: Card) -> None:
 					IMAGES_TEMP = IMAGES_TEMP + res["imgs"]
 				a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
 				a = insertHtmlAt(a, liftIERestriction, 'head', 0)
-				a = insertHtmlAt(a,forcedCss,'head',0)
+				a = insertHtmlAt(a, forcedCss, 'head', 0)
 				a = strip_control_characters(a)
 				a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
 				text(a)
@@ -528,10 +539,17 @@ def SuperMemoElement(card: Card) -> None:
 						text(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\{}".format(s))
 					with tag('Name'):
 						text(s)
-					with tag("Question"):
-						text("T")
-					with tag("Answer"):
-						text("F")
+					if DEFAULT_SIDE != SIDES[2] and \
+							DEFAULT_SIDE != SIDES[0]:
+						with tag("Question"):
+							text("F")
+						with tag("Answer"):
+							text("T")
+					else:
+						with tag("Question"):
+							text("T")
+						with tag("Answer"):
+							text("F")
 			
 			for s in QContent_Sounds:
 				with tag('Sound'):
@@ -541,10 +559,17 @@ def SuperMemoElement(card: Card) -> None:
 						text(s)
 					with tag('Text'):
 						text("")
-					with tag("Question"):
-						text("T")
-					with tag("Answer"):
-						text("F")
+					if DEFAULT_SIDE != SIDES[2] and \
+							DEFAULT_SIDE != SIDES[0]:
+						with tag("Question"):
+							text("F")
+						with tag("Answer"):
+							text("T")
+					else:
+						with tag("Question"):
+							text("T")
+						with tag("Answer"):
+							text("F")
 			
 			# html = Soup(a,'html.parser')
 			# m=[p['href'] for p in html.find_all('a') ]
@@ -567,10 +592,17 @@ def SuperMemoElement(card: Card) -> None:
 						text(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\{}".format(s))
 					with tag('Name'):
 						text(s)
-					with tag("Question"):
-						text("F")
-					with tag("Answer"):
-						text("T")
+					if DEFAULT_SIDE != SIDES[2] and \
+							DEFAULT_SIDE != SIDES[1]:
+						with tag("Question"):
+							text("T")
+						with tag("Answer"):
+							text("F")
+					else:
+						with tag("Question"):
+							text("F")
+						with tag("Answer"):
+							text("T")
 			
 			for s in AContent_Sounds:
 				with tag('Sound'):
@@ -580,10 +612,17 @@ def SuperMemoElement(card: Card) -> None:
 						text(s)
 					with tag('Text'):
 						text("")
-					with tag("Question"):
-						text("F")
-					with tag("Answer"):
-						text("T")
+					if DEFAULT_SIDE != SIDES[2] and \
+							DEFAULT_SIDE != SIDES[1]:
+						with tag("Question"):
+							text("T")
+						with tag("Answer"):
+							text("F")
+					else:
+						with tag("Question"):
+							text("F")
+						with tag("Answer"):
+							text("T")
 			
 			for img in IMAGES_TEMP:
 				with tag('Image'):
@@ -591,6 +630,16 @@ def SuperMemoElement(card: Card) -> None:
 						text(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\{}".format(img))
 					with tag('Name'):
 						text(img)
+					if DEFAULT_SIDE == SIDES[1]:
+						with tag("Question"):
+							text("F")
+						with tag("Answer"):
+							text("T")
+					elif DEFAULT_SIDE == SIDES[0]:
+						with tag("Question"):
+							text("T")
+						with tag("Answer"):
+							text("F")
 			
 			if False and cardHasData(card):
 				with tag("LearningData"):
@@ -622,11 +671,64 @@ def SuperMemoTopic(col, ttl) -> None:
 			for c in col.cards:
 				SuperMemoElement(c)
 
+# ============================================= Configuration =============================================
+def loadConfig():
+	global IMAGES_AS_COMPONENT,DEFAULT_SIDE,IMPORT_LEARNING_DATA, SIDES
+	f = open('anki2smConfig.cfg')
+	cfg = Config(f)
+	try:
+		tempIMAGES_AS_COMPONENT = cfg.get("img_as_component", False)
+		tempDEFAULT_SIDE = cfg["default_side"] if cfg["default_side"] in SIDES else "anki"
+		tempIMPORT_LEARNING_DATA = cfg.get("import_learning_data",False)
+		
+		IMAGES_AS_COMPONENT = tempIMAGES_AS_COMPONENT
+		DEFAULT_SIDE = tempDEFAULT_SIDE
+		IMPORT_LEARNING_DATA = tempIMPORT_LEARNING_DATA
+	except:
+		ep("Corrupt Configuration file!")
+		return -1
+	finally:
+		f.close()
+	return 0
+	
+def saveConfig():
+	global IMAGES_AS_COMPONENT,DEFAULT_SIDE,IMPORT_LEARNING_DATA
+	with open('anki2smConfig.cfg', 'w+') as f:
+		f.write(f'{"img_as_component"}:{IMAGES_AS_COMPONENT}\n')
+		f.write(f'{"default_side"}:\"{DEFAULT_SIDE}\"\n')
+		f.write(f'{"import_learning_data"}:{IMPORT_LEARNING_DATA}\n')
+		
+def prompt_for_config():
+	global IMAGES_AS_COMPONENT, DEFAULT_SIDE
+	# Asking the user how they want the images to be displayed
+	print("Do You want images as:")
+	print("\tY - A separate component ")
+	print("\tN - Embedded within the Html - experimental")
+	tempInp: str = str(input(""))
+	if tempInp.casefold() in "Y".casefold():
+		IMAGES_AS_COMPONENT = True
+	elif tempInp.casefold() != "N".casefold():
+		print("Wrong input provided, proceeding as embedded")
+	# Asking the user where they want the components to end up
+	print("Where do you want the components to end up:")
+	print("\t 1 = Front")
+	print("\t 2 = Back ")
+	print("\t 3 = Leave them as is")
+	tempInp: int = int(input(""))
+	if 0 >= tempInp > 3:
+		print("Wrong input provided, proceeding as it is in anki")
+	else:
+		DEFAULT_SIDE = SIDES[tempInp - 1]
+	# Asking the user if they want to save the options as a configuration file
+	print("Do you want to save options for later? (Y/N)")
+	tempInp: str = str(input(""))
+	if tempInp.casefold() in "Y".casefold():
+		saveConfig()
 
 # ============================================= Main Function =============================================
 
 def main():
-	global AnkiNotes, totalCardCount, IMAGES_AS_COMPONENT
+	global AnkiNotes, totalCardCount, IMAGES_AS_COMPONENT, DEFAULT_SIDE, SIDES
 	
 	mypath = str(os.getcwd() + "\\apkgs\\")
 	apkgfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
@@ -635,22 +737,20 @@ def main():
 		ep("No apkg in apkgs folder.")
 		exit(0)
 	
-	print("Do You want images as:")
-	print("\tY - A separate component ")
-	print("\tN - Embedded within the Html - experimental")
-	tempInp = str(input(""))
-	if tempInp.casefold() in "Y".casefold():
-		IMAGES_AS_COMPONENT = True
-	elif tempInp.casefold() != "N".casefold():
-		print("Wrong input provided, proceeding as embedded")
+	if os.path.isfile('./anki2smConfig.cfg'):
+		if 0 > loadConfig():
+			prompt_for_config()
+	else:
+		prompt_for_config()
+
 	for i in range(len(apkgfiles)):
+		pp(f'Processing {apkgfiles[i]} : {i+1}/{len(apkgfiles)}')
 		start_import(mypath + apkgfiles[i])
-		print("Done with ", i + 1, "out of", len(apkgfiles))
 		resetGlobals()
 		try:
 			shutil.rmtree(os.path.splitext(apkgfiles[i])[0])
 		except OSError as e:
-			print("Error: %s - %s." % (e.filename, e.strerror))
+			ep("Error: %s - %s." % (e.filename, e.strerror))
 	
 	# creating smmedia if it doesnot exist
 	if not os.path.exists(str(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\")):
@@ -675,10 +775,8 @@ def main():
 		shutil.rmtree(os.getcwd() + "\\out\\out_files\\elements")
 		shutil.rmtree(os.getcwd() + "\\out\\out_files")
 	except OSError as e:
-		print("Error: %s - %s." % (e.filename, e.strerror))
-	print(totalCardCount)
-
-
+		ep("Error: %s - %s." % (e.filename, e.strerror))
+		
 if __name__ == '__main__':
 	main()
 	if len(FAILED_DECKS) > 0:

@@ -109,3 +109,4 @@ ignore/
 *anki2
 random/
 random/*
+*.cfg
