@@ -398,7 +398,10 @@ def buildCssForOrd(css, ordi):
 				defaultCardCss.style[dprop.name] = ordinalCss.style.getProperty(dprop.name).value
 	except:
 		pass
-	return defaultCardCss.cssText
+	if defaultCardCss is not None:
+		return defaultCardCss.cssText
+	else:
+		return ""
 
 
 # ============================================= Import and Export Function =============================================
