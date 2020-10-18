@@ -110,3 +110,6 @@ ignore/
 random/
 random/*
 *.cfg
+release.py
+releaseFiles.txt
+qrun.py
