@@ -268,8 +268,9 @@ def buildModels(t: str):
 			AnkiModels[str(y[k]["id"])].flds = tuple([f[0] for f in flds])
 			
 			for tmpl in y[k]["tmpls"]:
-				templates.append(Template(tmpl["name"], tmpl["qfmt"], tmpl["did"], tmpl["bafmt"], tmpl["afmt"], tmpl["ord"],
-				                          tmpl["bqfmt"]))
+				templates.append(
+					Template(tmpl["name"], tmpl["qfmt"], tmpl["did"], tmpl["bafmt"], tmpl["afmt"], tmpl["ord"],
+					         tmpl["bqfmt"]))
 			
 			AnkiModels[str(y[k]["id"])].tmpls = tuple(templates)
 			templates = []
@@ -301,6 +302,7 @@ def buildNotes(path: Path):
 			AnkiNotes[str(nid)].tags = EmptyString(tags).split(" ")
 			bar.next()
 		bar.finish()
+
 
 #   Commented until a better understanding of anki is reached
 #   	Source: https://groups.google.com/d/msg/supermemo_users/dTzhEog6zPk/8wqBk4qcCgAJ
@@ -383,7 +385,8 @@ def buildCardsAndDeck(path: Path):
 			totalCardCount += 1
 			bar.next()
 		bar.finish()
-		
+
+
 def buildCssForOrd(css, ordi):
 	pagecss = cssutils.parseString(css)
 	defaultCardCss = get_rule_for_selector(pagecss, ".card")
@@ -474,7 +477,7 @@ def cardHasData(card: Card) -> bool:
 
 
 def SuperMemoElement(card: Card) -> None:
-	global doc, tag, text, get_id, IMAGES_TEMP,DEFAULT_SIDE,SIDES
+	global doc, tag, text, get_id, IMAGES_TEMP, DEFAULT_SIDE, SIDES
 	IMAGES_TEMP = ()
 	
 	QContent_Sounds = ()
@@ -671,15 +674,16 @@ def SuperMemoTopic(col, ttl) -> None:
 			for c in col.cards:
 				SuperMemoElement(c)
 
+
 # ============================================= Configuration =============================================
 def loadConfig():
-	global IMAGES_AS_COMPONENT,DEFAULT_SIDE,IMPORT_LEARNING_DATA, SIDES
+	global IMAGES_AS_COMPONENT, DEFAULT_SIDE, IMPORT_LEARNING_DATA, SIDES
 	f = open('anki2smConfig.cfg')
 	cfg = Config(f)
 	try:
 		tempIMAGES_AS_COMPONENT = cfg.get("img_as_component", False)
 		tempDEFAULT_SIDE = cfg["default_side"] if cfg["default_side"] in SIDES else "anki"
-		tempIMPORT_LEARNING_DATA = cfg.get("import_learning_data",False)
+		tempIMPORT_LEARNING_DATA = cfg.get("import_learning_data", False)
 		
 		IMAGES_AS_COMPONENT = tempIMAGES_AS_COMPONENT
 		DEFAULT_SIDE = tempDEFAULT_SIDE
@@ -690,14 +694,16 @@ def loadConfig():
 	finally:
 		f.close()
 	return 0
-	
+
+
 def saveConfig():
-	global IMAGES_AS_COMPONENT,DEFAULT_SIDE,IMPORT_LEARNING_DATA
+	global IMAGES_AS_COMPONENT, DEFAULT_SIDE, IMPORT_LEARNING_DATA
 	with open('anki2smConfig.cfg', 'w+') as f:
 		f.write(f'{"img_as_component"}:{IMAGES_AS_COMPONENT}\n')
 		f.write(f'{"default_side"}:\"{DEFAULT_SIDE}\"\n')
 		f.write(f'{"import_learning_data"}:{IMPORT_LEARNING_DATA}\n')
-		
+
+
 def prompt_for_config():
 	global IMAGES_AS_COMPONENT, DEFAULT_SIDE
 	# Asking the user how they want the images to be displayed
@@ -725,6 +731,7 @@ def prompt_for_config():
 	if tempInp.casefold() in "Y".casefold():
 		saveConfig()
 
+
 # ============================================= Main Function =============================================
 
 def main():
@@ -742,9 +749,9 @@ def main():
 			prompt_for_config()
 	else:
 		prompt_for_config()
-
+	
 	for i in range(len(apkgfiles)):
-		pp(f'Processing {apkgfiles[i]} : {i+1}/{len(apkgfiles)}')
+		pp(f'Processing {apkgfiles[i]} : {i + 1}/{len(apkgfiles)}')
 		start_import(mypath + apkgfiles[i])
 		resetGlobals()
 		try:
@@ -762,13 +769,16 @@ def main():
 	
 	# moving media files to smmedia
 	files = os.listdir(os.getcwd() + "\\out\\out_files\\elements")
-	for f in files:
-		if f not in os.listdir(str(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\")):
-			try:
-				shutil.move(os.getcwd() + "\\out\\out_files\\elements\\" + f,
-				            str(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\"))
-			except:
-				pass
+	with IncrementalBar("Moving Media Files DON'T CLOSE!", max=len(files)) as bar:
+		for f in files:
+			if f not in os.listdir(str(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\")):
+				try:
+					shutil.move(os.getcwd() + "\\out\\out_files\\elements\\" + f,
+					            str(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\"))
+				except:
+					pass
+			bar.next()
+		bar.finish()
 	
 	# deleting temp media files
 	try:
@@ -776,7 +786,8 @@ def main():
 		shutil.rmtree(os.getcwd() + "\\out\\out_files")
 	except OSError as e:
 		ep("Error: %s - %s." % (e.filename, e.strerror))
-		
+
+
 if __name__ == '__main__':
 	main()
 	if len(FAILED_DECKS) > 0:
