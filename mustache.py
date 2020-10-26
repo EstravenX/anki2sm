@@ -374,7 +374,7 @@ class Token():
                 args = inspect.getfullargspec(func)[0]
                 argDict = {}
                 for argument in args:
-                    if('txt' == argument ):
+                    if('txt' == argument or 'text' == argument):
                         argDict['txt'] = value
                     if ('args' == argument):
                         argDict['args']= "ags"
