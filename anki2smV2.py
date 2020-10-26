@@ -20,6 +20,7 @@ import premailer
 import cssutils
 import logging
 import click
+from Utils.Fonts import install_font
 from config import Config
 from Utils.HtmlUtils import \
 	(
@@ -180,7 +181,7 @@ def unpack_media(media_dir: Path):
 
 def unzip_file(zipfile_path: Path) -> Path:
 	if "zip" not in magic.from_file(zipfile_path.as_posix(), mime=True):
-		ep("apkg does not appear to be a ZIP file...")
+		ep("Error: apkg does not appear to be a ZIP file...")
 		return -1
 	with ZipFile(zipfile_path.as_posix(), 'r') as apkg:
 		apkg.extractall(zipfile_path.stem)
@@ -439,7 +440,7 @@ def start_import(file: str) -> int:
 		unpack_db(p)
 		return 0
 	else:
-		ep("Cannot convert %s" % os.path.basename(file))
+		ep("Error: Cannot convert %s" % os.path.basename(file))
 		return -1
 
 
@@ -692,7 +693,7 @@ def loadConfig():
 		DEFAULT_SIDE = tempDEFAULT_SIDE
 		IMPORT_LEARNING_DATA = tempIMPORT_LEARNING_DATA
 	except:
-		ep("Corrupt Configuration file!")
+		ep("Error: Corrupt Configuration file!")
 		return -1
 	finally:
 		f.close()
@@ -744,7 +745,7 @@ def main():
 	apkgfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 	
 	if len(apkgfiles) == 0:
-		ep("No apkg in apkgs folder.")
+		ep("Error: No apkg in apkgs folder.")
 		exit(0)
 	
 	if os.path.isfile('./anki2smConfig.cfg'):
@@ -772,6 +773,14 @@ def main():
 	
 	# moving media files to smmedia
 	files = os.listdir(os.getcwd() + "\\out\\out_files\\elements")
+	fonts= [x for x in files if x.endswith(".ttf")]
+	for font in fonts:
+		try:
+			font_path = os.getcwd() + "\\out\\out_files\\elements\\"+font
+			install_font(font_path.replace("\\","/"))
+		except:
+			ep("Error: Failed to install the font {}. \n\tRe-run script in admin mode if it is not or manually install it Path[{}].\n".format(font,font_path))
+			
 	with IncrementalBar("Moving Media Files DON'T CLOSE!", max=len(files)) as bar:
 		for f in files:
 			if f not in os.listdir(str(os.path.expandvars(r'%LocalAppData%') + "\\temp\\smmedia\\")):

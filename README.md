@@ -8,8 +8,10 @@
 - run ```run.bat``` which should run the anki2smV2
 
 ##### Some Notes:
-  Media from anki is stored into ```C:\Users\<your-username>\AppData\Local\Temp\smmedia```. You donot need to create the directory the script creates it. Tested with images and audio. 
-  
+  ##### Media:
+   - Media from anki is stored into ```C:\Users\<your-username>\AppData\Local\Temp\smmedia```. You donot need to create the directory the script creates it. Tested with images and audio. 
+  ##### Fonts:
+   - Run the script in admin mode for it to install fonts that are sometimes bundled with apkgs.
 # TODO: 
   1) [ ] Bug test it.
   2) [ ] Anki progress import.
