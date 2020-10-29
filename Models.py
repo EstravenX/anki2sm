@@ -7,12 +7,14 @@ def EmptyString(s: str) -> str:
 
 
 class Model:
-	def __init__(self, mid, typeofD, css):
+	def __init__(self, mid, typeofD, css, latexPre, latexPost):
 		self.id = mid
 		self.type = typeofD
 		self.flds = None
 		self.tmpls = None
 		self.css = css
+		self.latexPre = None
+		self.latexPost = None
 	
 	def __str__(self):
 		return ("<Model{id:" + EmptyString(self.id) + ",flds:[" + ','.join(
