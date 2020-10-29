@@ -260,7 +260,7 @@ def buildModels(t: str):
 	flds = []
 	with IncrementalBar("\tBuilding Models", max=len(y.keys())) as bar:
 		for k in y.keys():
-			AnkiModels[str(y[k]["id"])] = Model(str(y[k]["id"]), y[k]["type"], y[k]["css"])
+			AnkiModels[str(y[k]["id"])] = Model(str(y[k]["id"]), y[k]["type"], y[k]["css"], y[k]["latexPre"], y[k]["latexPost"])
 			
 			for fld in y[k]["flds"]:
 				flds.append((fld["name"], fld["ord"]))
