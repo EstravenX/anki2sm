@@ -53,6 +53,7 @@ doc, tag, text = Doc().tagtext()
 
 IMPORT_LEARNING_DATA = False
 IMAGES_AS_COMPONENT = False
+ALLOW_IE_COMPAT = True
 
 SIDES = ("q", "a", "anki")
 
@@ -145,7 +146,8 @@ def wp(p) -> None:
 
 
 def resetGlobals() -> None:
-	global Anki_Collections, AnkiNotes, AnkiModels, totalCardCount, doc, tag, text, IMAGES_TEMP
+	global Anki_Collections, AnkiNotes, AnkiModels, totalCardCount, doc, tag, text, IMAGES_TEMP, ALLOW_IE_COMPAT
+	ALLOW_IE_COMPAT = True
 	Anki_Collections = defaultdict(dict, ((SUB_DECK_MARKER, []),))
 	AnkiNotes = {}
 	AnkiModels = {}
@@ -534,7 +536,8 @@ def SuperMemoElement(card: Card) -> None:
 				if IMAGES_AS_COMPONENT:
 					IMAGES_TEMP = IMAGES_TEMP + res["imgs"]
 				a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
-				a = insertHtmlAt(a, liftIERestriction, 'head', 0)
+				if(ALLOW_IE_COMPAT):
+					a = insertHtmlAt(a, liftIERestriction, 'head', 0)
 				a = insertHtmlAt(a, forcedCss, 'head', 0)
 				a = strip_control_characters(a)
 				a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
@@ -587,7 +590,8 @@ def SuperMemoElement(card: Card) -> None:
 				if IMAGES_AS_COMPONENT:
 					IMAGES_TEMP = IMAGES_TEMP + res["imgs"]
 				a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
-				a = insertHtmlAt(a, liftIERestriction, 'head', 0)
+				if(ALLOW_IE_COMPAT):
+					a = insertHtmlAt(a, liftIERestriction, 'head', 0)
 				a = insertHtmlAt(a, forcedCss, 'head', 0)
 				a = strip_control_characters(a)
 				a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
@@ -739,7 +743,7 @@ def prompt_for_config():
 # ============================================= Main Function =============================================
 
 def main():
-	global AnkiNotes, totalCardCount, IMAGES_AS_COMPONENT, DEFAULT_SIDE, SIDES
+	global AnkiNotes, totalCardCount, IMAGES_AS_COMPONENT, DEFAULT_SIDE, SIDES, ALLOW_IE_COMPAT
 	
 	mypath = str(os.getcwd() + "\\apkgs\\")
 	apkgfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
@@ -756,6 +760,16 @@ def main():
 	
 	for i in range(len(apkgfiles)):
 		pp(f'Processing {apkgfiles[i]} : {i + 1}/{len(apkgfiles)}')
+		
+		print("Do you want to lift IE Restrictions: ")
+		print("\tY ")
+		print("\tN")
+		tempInp: str = str(input(""))
+		if tempInp.casefold() in "N".casefold():
+			ALLOW_IE_COMPAT = False
+		elif tempInp.casefold() != "Y".casefold():
+			print("Wrong input provided, IE restrictions are lifted")
+		
 		start_import(mypath + apkgfiles[i])
 		resetGlobals()
 		try:
