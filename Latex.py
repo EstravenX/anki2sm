@@ -2,7 +2,7 @@ import binascii
 import re
 from pdf2image import convert_from_bytes
 import subprocess
-from typing import AnyStr
+from typing import AnyStr, Tuple
 from Cryptodome.Hash import SHA1
 
 from Formatters import stripHTML
@@ -33,8 +33,8 @@ def contains_latex(text: AnyStr) -> bool:
 	return LATEX.match(text) is not None
 
 
-def fname_for_latex(latex: str, isSvg: bool) -> str:
-	ext = "svg" if isSvg else "png"
+def fname_for_latex(latex: str, is_svg: bool) -> str:
+	ext = "svg" if is_svg else "png"
 	csum = binascii.hexlify(_string_checksum(latex)).decode()
 	return "latex-{}.{}".format(csum, ext)
 
@@ -54,17 +54,16 @@ def strip_html_for_latex(html: str) -> str:
 	return out
 
 
-def export_latex(latex_src: ExtractedLatex, latexPre: str, latexPost: str):
+def export_latex(latex_src: ExtractedLatex, latexPre: str, latexPost: str) -> None:
 	filename = latex_src.fname.split(".")[0] + '.tex'
 	template = r'''\documentclass[preview]{{standalone}}\begin{{document}}{}\end{{document}}'''
 	with open(filename, 'wb') as f:
-		f.write(bytes(template.format(str(latex_src.latex.replace("\n"," \\\\ "))), 'UTF-8'))
+		f.write(bytes(template.format(str(latex_src.latex.replace("\n", " \\\\ "))), 'UTF-8'))
 	
 	subprocess.call('pdflatex ' + filename, shell=True, )
 	
 	images = convert_from_bytes(open(latex_src.fname.split(".")[0] + ".pdf", 'rb').read())
 	images[0].save(latex_src.fname.split(".")[0] + ".png")
-
 
 
 def extract_latex(text: str, svg: bool) -> [AnyStr, [ExtractedLatex]]:
