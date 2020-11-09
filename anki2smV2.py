@@ -6,7 +6,7 @@ import sqlite3
 from datetime import datetime
 from os import listdir
 from os.path import isfile, join
-from pathlib import Path
+from pathlib import Path,WindowsPath
 import json
 from collections import defaultdict
 from zipfile import ZipFile
@@ -182,9 +182,9 @@ def unpack_media(media_dir: Path):
 
 
 def unzip_file(zipfile_path: Path) -> Path:
+	"""Attempts at unzipping the file, if the apkg is corrupt or is not appear to be zip, raises an Exception"""
 	if "zip" not in magic.from_file(zipfile_path.as_posix(), mime=True):
-		ep("Error: apkg does not appear to be a ZIP file...")
-		return -1
+		raise Exception("Error: apkg does not appear to be a ZIP file...")
 	with ZipFile(zipfile_path.as_posix(), 'r') as apkg:
 		apkg.extractall(zipfile_path.stem)
 	return Path(zipfile_path.stem)
@@ -425,7 +425,7 @@ def export(file):
 
 def start_import(file: str) -> int:
 	p = unzip_file(Path(file))
-	if p:
+	if p is not None and type(p) is WindowsPath:
 		media = unpack_media(p)
 		out = Path("out")
 		out.mkdir(parents=True, exist_ok=True)
@@ -536,9 +536,10 @@ def SuperMemoElement(card: Card) -> None:
 				if IMAGES_AS_COMPONENT:
 					IMAGES_TEMP = IMAGES_TEMP + res["imgs"]
 				a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
-				if(ALLOW_IE_COMPAT):
+				if ALLOW_IE_COMPAT:
 					a = insertHtmlAt(a, liftIERestriction, 'head', 0)
-				a = insertHtmlAt(a, forcedCss, 'head', 0)
+				if not IMAGES_AS_COMPONENT and len(IMAGES_TEMP) != 0:
+					a = insertHtmlAt(a, forcedCss, 'head', 0)
 				a = strip_control_characters(a)
 				a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
 				text(a)
@@ -590,9 +591,10 @@ def SuperMemoElement(card: Card) -> None:
 				if IMAGES_AS_COMPONENT:
 					IMAGES_TEMP = IMAGES_TEMP + res["imgs"]
 				a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
-				if(ALLOW_IE_COMPAT):
+				if ALLOW_IE_COMPAT:
 					a = insertHtmlAt(a, liftIERestriction, 'head', 0)
-				a = insertHtmlAt(a, forcedCss, 'head', 0)
+				if not IMAGES_AS_COMPONENT and len(IMAGES_TEMP) != 0:
+					a = insertHtmlAt(a, forcedCss, 'head', 0)
 				a = strip_control_characters(a)
 				a = a.encode("ascii", "xmlcharrefreplace").decode("utf-8")
 				text(a)
@@ -762,8 +764,9 @@ def main():
 		pp(f'Processing {apkgfiles[i]} : {i + 1}/{len(apkgfiles)}')
 		
 		print("Do you want to lift IE Restrictions: ")
-		print("\tY ")
-		print("\tN")
+		wp("Please be aware that selecting No is not going to allow you to embed images within the html.")
+		print("\tY - Yes I want to left the restrictions.")
+		print("\tN - No I choose to not lift the restrictions.")
 		tempInp: str = str(input(""))
 		if tempInp.casefold() in "N".casefold():
 			ALLOW_IE_COMPAT = False
