@@ -53,7 +53,7 @@ doc, tag, text = Doc().tagtext()
 
 IMPORT_LEARNING_DATA = False
 IMAGES_AS_COMPONENT = False
-ALLOW_IE_COMPAT = True
+MAINTAIN_STYLING = True
 
 SIDES = ("q", "a", "anki")
 
@@ -146,8 +146,8 @@ def wp(p) -> None:
 
 
 def resetGlobals() -> None:
-	global Anki_Collections, AnkiNotes, AnkiModels, totalCardCount, doc, tag, text, IMAGES_TEMP, ALLOW_IE_COMPAT
-	ALLOW_IE_COMPAT = True
+	global Anki_Collections, AnkiNotes, AnkiModels, totalCardCount, doc, tag, text, IMAGES_TEMP, MAINTAIN_STYLING
+	MAINTAIN_STYLING = True
 	Anki_Collections = defaultdict(dict, ((SUB_DECK_MARKER, []),))
 	AnkiNotes = {}
 	AnkiModels = {}
@@ -535,9 +535,11 @@ def SuperMemoElement(card: Card) -> None:
 				res = cleanHtml(a, imgcmp=IMAGES_AS_COMPONENT)
 				if IMAGES_AS_COMPONENT:
 					IMAGES_TEMP = IMAGES_TEMP + res["imgs"]
-				a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
-				if ALLOW_IE_COMPAT:
+				if MAINTAIN_STYLING:
+					a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
 					a = insertHtmlAt(a, liftIERestriction, 'head', 0)
+				else:
+					a = res["soup"]
 				if not IMAGES_AS_COMPONENT and len(IMAGES_TEMP) != 0:
 					a = insertHtmlAt(a, forcedCss, 'head', 0)
 				a = strip_control_characters(a)
@@ -590,9 +592,11 @@ def SuperMemoElement(card: Card) -> None:
 				res = cleanHtml(card.a, imgcmp=IMAGES_AS_COMPONENT)
 				if IMAGES_AS_COMPONENT:
 					IMAGES_TEMP = IMAGES_TEMP + res["imgs"]
-				a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
-				if ALLOW_IE_COMPAT:
+				if MAINTAIN_STYLING:
+					a = insertHtmlAt(res["soup"], enforceSectionJS, 'head', 0)
 					a = insertHtmlAt(a, liftIERestriction, 'head', 0)
+				else:
+					a = res["soup"]
 				if not IMAGES_AS_COMPONENT and len(IMAGES_TEMP) != 0:
 					a = insertHtmlAt(a, forcedCss, 'head', 0)
 				a = strip_control_characters(a)
@@ -745,7 +749,7 @@ def prompt_for_config():
 # ============================================= Main Function =============================================
 
 def main():
-	global AnkiNotes, totalCardCount, IMAGES_AS_COMPONENT, DEFAULT_SIDE, SIDES, ALLOW_IE_COMPAT
+	global AnkiNotes, totalCardCount, IMAGES_AS_COMPONENT, DEFAULT_SIDE, SIDES, MAINTAIN_STYLING
 	
 	mypath = str(os.getcwd() + "\\apkgs\\")
 	apkgfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
@@ -763,15 +767,15 @@ def main():
 	for i in range(len(apkgfiles)):
 		pp(f'Processing {apkgfiles[i]} : {i + 1}/{len(apkgfiles)}')
 		
-		print("Do you want to lift IE Restrictions: ")
-		wp("Please be aware that selecting No is not going to allow you to embed images within the html.")
-		print("\tY - Yes I want to left the restrictions.")
-		print("\tN - No I choose to not lift the restrictions.")
+		print("Do you want to enforce the deck's attributes and lift IE restrictions: ")
+		wp("Please be aware that selecting No is going to:\n \t1. Rendering maybe broken\n\t2. Disable the deck's css and fonts\n\n")
+		print("\tY - Yes I want to lift the restrictions.")
+		print("\tN - No I choose not to lift the restrictions.")
 		tempInp: str = str(input(""))
 		if tempInp.casefold() in "N".casefold():
-			ALLOW_IE_COMPAT = False
+			MAINTAIN_STYLING = False
 		elif tempInp.casefold() != "Y".casefold():
-			print("Wrong input provided, IE restrictions are lifted")
+			print("Wrong input provided, preserving deck's attributes")
 		
 		start_import(mypath + apkgfiles[i])
 		resetGlobals()
