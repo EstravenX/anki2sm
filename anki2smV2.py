@@ -493,7 +493,7 @@ def SuperMemoElement(card: Card) -> None:
 	AContent_Videos = ()
 	
 	if "[sound:" in str(card.q):
-		g = re.search(r"(?:\[sound:)([^])(?:]+)(?:\])", str(card.q))
+		g = re.search(r"(?:\[sound:)([^]]+)(?:\])", str(card.q))
 		if g is not None:
 			for p in g.groups():
 				m = Path("{}/{}".format("out/out_files/elements", p))
@@ -506,7 +506,7 @@ def SuperMemoElement(card: Card) -> None:
 						QContent_Videos = QContent_Videos + (p,)
 	
 	if "[sound:" in str(card.a):
-		g = re.search(r"(?:\[sound:)([^])(?:]+)(?:\])", str(card.a))
+		g = re.search(r"(?:\[sound:)([^]]+)(?:\])", str(card.a))
 		if g is not None:
 			for p in g.groups():
 				m = Path("{}/{}".format("out/out_files/elements", p))
