@@ -752,7 +752,7 @@ def main():
 	global AnkiNotes, totalCardCount, IMAGES_AS_COMPONENT, DEFAULT_SIDE, SIDES, MAINTAIN_STYLING
 	
 	mypath = str(os.getcwd() + "\\apkgs\\")
-	apkgfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and (f.endswith(".apkg") or f.endswith(".colpkg"))]
+        apkgfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and (f.endswith(".apkg") or f.endswith("colpkg"))]
 	
 	if len(apkgfiles) == 0:
 		ep("Error: No apkg in apkgs folder.")
