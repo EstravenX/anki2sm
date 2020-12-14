@@ -1,8 +1,10 @@
+import concurrent.futures
 import errno
 import os
 import re
 import shutil
 import sqlite3
+import zipfile
 from datetime import datetime
 from os import listdir
 from os.path import isfile, join
@@ -181,14 +183,39 @@ def unpack_media(media_dir: Path):
 	return m
 
 
+# def f3(zipfile_path: Path) -> Path:
+# 	"""Attempts at unzipping the file, if the apkg is corrupt or is not appear to be zip, raises an Exception"""
+# 	if "zip" not in magic.from_file(zipfile_path.as_posix(), mime=True):
+# 		pass
+# 		#raise Exception("Error: apkg does not appear to be a ZIP file...")
+# 	with ZipFile(zipfile_path.as_posix(), 'r') as apkg:
+# 		apkg.extractall(zipfile_path.stem)
+# 	return Path(zipfile_path.stem)
+
+
+def unzip_member_f3(zip_filepath, filename, dest):
+    with open(zip_filepath, 'rb') as f:
+        zf = ZipFile(f)
+        zf.extract(filename, dest)
+    fn = os.path.join(dest, filename)
+
+
+
 def unzip_file(zipfile_path: Path) -> Path:
-	"""Attempts at unzipping the file, if the apkg is corrupt or is not appear to be zip, raises an Exception"""
-	if "zip" not in magic.from_file(zipfile_path.as_posix(), mime=True):
-		pass
-		#raise Exception("Error: apkg does not appear to be a ZIP file...")
-	with ZipFile(zipfile_path.as_posix(), 'r') as apkg:
-		apkg.extractall(zipfile_path.stem)
-	return Path(zipfile_path.stem)
+    with open(zipfile_path.as_posix(), 'rb') as f:
+        zf = ZipFile(f)
+        futures = []
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            for member in zf.infolist():
+                futures.append(
+                    executor.submit(
+                        unzip_member_f3,
+                        zipfile_path.as_posix(),
+                        member.filename,
+                        zipfile_path.stem,
+                    )
+                )
+    return Path(zipfile_path.stem)
 
 
 # ============================================= Deck Builder Functions =============================================
