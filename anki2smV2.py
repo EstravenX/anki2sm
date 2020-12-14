@@ -184,7 +184,8 @@ def unpack_media(media_dir: Path):
 def unzip_file(zipfile_path: Path) -> Path:
 	"""Attempts at unzipping the file, if the apkg is corrupt or is not appear to be zip, raises an Exception"""
 	if "zip" not in magic.from_file(zipfile_path.as_posix(), mime=True):
-		raise Exception("Error: apkg does not appear to be a ZIP file...")
+		pass
+		#raise Exception("Error: apkg does not appear to be a ZIP file...")
 	with ZipFile(zipfile_path.as_posix(), 'r') as apkg:
 		apkg.extractall(zipfile_path.stem)
 	return Path(zipfile_path.stem)
@@ -262,7 +263,7 @@ def buildModels(t: str):
 	flds = []
 	with IncrementalBar("\tBuilding Models", max=len(y.keys())) as bar:
 		for k in y.keys():
-			AnkiModels[str(y[k]["id"])] = Model(str(y[k]["id"]), y[k]["type"], y[k]["css"], y[k]["latexPre"], y[k]["latexPost"])
+			AnkiModels[str(y[k]["id"])] = Model(str(y[k]["id"]), y[k]["type"], cssutils.parseString(y[k]["css"]), y[k]["latexPre"], y[k]["latexPost"])
 			
 			for fld in y[k]["flds"]:
 				flds.append((fld["name"], fld["ord"]))
@@ -391,13 +392,13 @@ def buildCardsAndDeck(path: Path):
 
 
 def buildCssForOrd(css, ordi):
-	pagecss = cssutils.parseString(css)
+	pagecss = css
 	defaultCardCss = get_rule_for_selector(pagecss, ".card")
 	ordinalCss = get_rule_for_selector(pagecss, ".card{}".format(ordi + 1))
 	try:
 		ordProp = [prop for prop in ordinalCss.style.getProperties()]
 		for dprop in defaultCardCss.style.getProperties():
-			if (dprop.name in [n.name for n in ordProp]):
+			if dprop.name in [n.name for n in ordProp]:
 				defaultCardCss.style[dprop.name] = ordinalCss.style.getProperty(dprop.name).value
 	except:
 		pass
@@ -750,9 +751,8 @@ def prompt_for_config():
 
 def main():
 	global AnkiNotes, totalCardCount, IMAGES_AS_COMPONENT, DEFAULT_SIDE, SIDES, MAINTAIN_STYLING
-	
 	mypath = str(os.getcwd() + "\\apkgs\\")
-        apkgfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and (f.endswith(".apkg") or f.endswith("colpkg"))]
+	apkgfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and (f.endswith(".apkg") or f.endswith(".zip"))]
 	
 	if len(apkgfiles) == 0:
 		ep("Error: No apkg in apkgs folder.")
