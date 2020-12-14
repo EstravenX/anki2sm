@@ -1,3 +1,5 @@
+from typing import List
+
 import mustache
 import Formatters
 import Utils.Fonts as fonts
@@ -8,8 +10,8 @@ import Utils.Fonts as fonts
 #q = qtext.split(r"")
 #fonts.install_font("C:/Users/polit/AppData/Local/Temp/smmedia/_YUMIN.TTF")
 
-import glob
-print(glob.glob("C:\\Users\\polit\\AppData\\Local\\Temp\\smmedia\\*.ttf"))
+#import glob
+#print(glob.glob("C:\\Users\\polit\\AppData\\Local\\Temp\\smmedia\\*.ttf"))
 
 # 
 # mustache.filters["cloze"] = lambda txt: Formatters.cloze_q_filter(txt, str(int(0) + 1))
@@ -21,3 +23,21 @@ print(glob.glob("C:\\Users\\polit\\AppData\\Local\\Temp\\smmedia\\*.ttf"))
 #
 # mc = MediaConverter()
 # mc.convertImage("C:\\Users\\polit\\Desktop\\anki2sm\\out\\out_files\\elements\\Freesample.svg")
+
+
+# def lastStoneWeightII( stones: List[int]) -> int:
+# 	total = sum(stones)
+#
+# 	Max_weight = int(total / 2)
+# 	print("Max Weight",Max_weight)
+# 	current = (Max_weight + 1) * [0]
+#
+# 	for stone in stones:
+# 		for wgt in range(Max_weight, -1, -1):
+# 			if wgt - stone >= 0:
+# 				current[wgt] = max(stone + current[wgt - stone], current[wgt])
+# 			print(stone, wgt, current)
+# 	#print("Matrix value:\n",current)
+# 	return total - 2 * current[-1]
+#
+# lastStoneWeightII([2,7,4,1,8,1])
