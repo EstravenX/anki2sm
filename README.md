@@ -25,7 +25,7 @@ For a guide on using anki2sm in video form, check out [this video](https://www.y
   2) [ ] Anki progress import.
   3) [x] Each collection should have its own concept or topic.
   4) [ ] Support Latex.
-  5) [ ] Suport image occlusion. 
+  5) [ ] Support image occlusion. 
   6) [ ] Item names to reflect the content.
 
 
