@@ -17,7 +17,7 @@ For a guide on using anki2sm in video form, check out [this video](https://www.y
    - Media from anki is stored into ```C:\Users\<your-username>\AppData\Local\Temp\smmedia```. You donot need to create the directory the script creates it. Tested with images and audio. 
   ##### Fonts:
    - Run the script in admin mode for it to install fonts that are sometimes bundled with apkgs.
-  ##### A can-be-really helpful recommendation
+  ##### A can-be-really helpful tip
    - We(@[Eden_KeepOnSurviving](https://github.com/KeepOnSurviving) & @🐈) highly recommend you **create a new collection *before* you import the XML file**, for avoiding some **item ID-induced issue**. You can *emerge* the original collection and new collection after that.
    - Shout out to 🐈(*an unnamed guy loving a cat emoji(?)* 1519056419) from a smol' Chinese community.
 # TODO: 
